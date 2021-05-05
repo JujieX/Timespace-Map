@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset='utf-8'/>
+	<title>NYC Subway Travel Time Map</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+			font-family: "HelveticaNeue", "Helvetica", "Arial", sans-serif;
+			-webkit-font-smoothing: antialiased;
+    }
+    svg {
+      background-color: #f8f8ff;
+      height: 100%;
+      width: 100%;
+    }
+		.tooltip {
+			position: absolute;
+			pointer-events: none;
+			background-color: #2a2a2f;
+			color: white;
+			font-size: small;
+			padding: 4px 8px;
+		}
+		svg {
+			cursor: -webkit-grab;
+			cursor: -moz-grab;
+		}
+		.stop, .home {
+			cursor: default;
+		}
+		
+		.stop {
+			stroke-width: 15;
+			stroke: transparent;
+		}
+		.hour {
+			stroke: rgba(0,0,100,0.1);
+			stroke-width: 1px;
+			fill: transparent;
+			z-index: -1;
+		}
+		#info {
+			position: fixed;
+			top: 2vh;
+			left: 2vh;
+			width: 25vw;
+			background-color: #36363f;
+			color: white;
+			padding: 10px;
+			line-height: 1.4;
+		}
+		#info h1 {
+			font-size: 1.2em;
+			margin-top: 0;
+			border-top: 2px solid white;
+			padding-top: 5px;
+		}
+
+		#info .fine-print {
+			opacity: 0.5;
+			font-size: small;
+		}
+		#explanation {
+			display: none;
+		}
+		a:link, a:visited {
+			color: inherit;
+		}
+		#attribution {
+			margin-top: 2em;
+			text-align: right;
+			font-size: small;
+			margin-bottom: 0;
+		}
+		#timePicker h6 {
+			text-transform: uppercase;
+			font-weight: bold;
+			margin-bottom: 0;
+		}
+		#timePicker ul {
+			padding: 0;
+			margin-top: 0;
+		}
+		#timePicker li {
+			cursor: default;
+			opacity: 0.5;
+		}
+		#timePicker li.selected {
+			text-decoration: underline;
+			opacity: 1;
+		}
+		#timePicker li:hover {
+			text-decoration: underline;
+		}
+	
+  </style>
+   <script src="../d3/d3.min.js"></script>
+   <script src="subway.js"></script>
+   <script src="island.js"></script>
+   <script src="mls.js"></script>
+
+	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
+  	<script src="schedules/transfers.js"></script>
+  	<script src="https://unpkg.com/js-heap@0.3.1/heap.js"></script>
+  	<script src="virtual_rider.js"></script>
+
+	<script src="schedules/sunday_afternoon.js"></script>
+	<script src="schedules/weekday_3am.js"></script>
+	<script src="schedules/weekday_8am.js"></script>
+	<script src="schedules/weekday_midnight.js"></script>
+
+	
+</head>
+<body>
+  <script src='map.js'></script>
+	<div id='info'>
+		<div id='initial'>
+			<h1>Click a Stop</h1>
+		</div>
+		<div id='explanation'>
+			<h1>NYC Travel Time Map</h1>
+			<p>On this map, each stop‘s distance from your chosen stop is based on the time it‘ll take to travel there.</p>
+			<div id='timePicker'>
+				<h6>Travel time:</h6>
+				<ul>
+					<li class='selected' data-schedule='weekday_8am'>Weekday rush hour</li>
+					<li data-schedule='weekday_3am'>Weekday late night</li>
+					<li data-schedule='sunday_afternoon'>Weekend afternoon</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+</body>
+</html>
