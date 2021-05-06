@@ -40,7 +40,7 @@
 			stroke: rgba(0,0,100,0.1);
 			stroke-width: 1px;
 			fill: transparent;
-			z-index: -1;
+			z-index: -100;
 		}
 		#info {
 			position: fixed;
@@ -104,7 +104,6 @@
 
 	<script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
   	<script src="schedules/transfers.js"></script>
-  	<script src="https://unpkg.com/js-heap@0.3.1/heap.js"></script>
   	<script src="virtual_rider.js"></script>
 
 	<script src="schedules/sunday_afternoon.js"></script>
@@ -122,11 +121,10 @@
 		</div>
 		<div id='explanation'>
 			<h1>NYC Travel Time Map</h1>
-			<p>On this map, each stop‘s distance from your chosen stop is based on the time it‘ll take to travel there.</p>
 			<div id='timePicker'>
 				<h6>Travel time:</h6>
 				<ul>
-					<li class='selected' data-schedule='weekday_8am'>Weekday rush hour</li>
+					<li class='selected' data-schedule= 'weekday_8am'>Weekday rush hour</li>
 					<li data-schedule='weekday_3am'>Weekday late night</li>
 					<li data-schedule='sunday_afternoon'>Weekend afternoon</li>
 				</ul>

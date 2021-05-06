@@ -1,4 +1,4 @@
-const mls2D = function(controlPoints,outputPoints,stationPoints)
+const mls2D = function(controlPoints,outputPoints)
 {
 	let miu;
 
@@ -78,8 +78,8 @@ const mls2D = function(controlPoints,outputPoints,stationPoints)
 
 	for (let i = 0; i < Object.keys(outputPoints).length; i++){
 		let pt = outputPoints[i].i; 
-		outputPoints[i].x = outputGraph[pt].x + stationPoints[homeStationId].x;
-		outputPoints[i].y = outputGraph[pt].y + stationPoints[homeStationId].y;
+		outputPoints[i].x = outputGraph[pt].x ;
+		outputPoints[i].y = outputGraph[pt].y ;
 	}
 	console.log(outputGraph,outputPoints)
 }

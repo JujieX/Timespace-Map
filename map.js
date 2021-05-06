@@ -1,21 +1,33 @@
 
-let maxTravelTime = 50 ;
+let maxTravelTime = 60 * 0.4 ;
 
 let { lines, stations} = subway;
 let { points, curves } = manhattan;
 
-let width = height = 100;// 1:1比例
+let width = height = 200;// 1:1比例
 
 window.travelTimes = null;
 let defaultStop = '127'; // times sq
 
 const svg = d3.select("body").append("svg").attr("viewBox", '0 0 ' + width + ' ' + height);
 const container = svg.append('g');
-const zoom = d3.zoom().scaleExtent([1, 10]).on("zoom",  ({transform}) => {container.attr("transform", transform)});
+
+const zoom = d3.zoom().scaleExtent([0.7, 5]).on("zoom", (e) => {
+	container.attr("transform", e.transform);
+	container.selectAll('.stop').attr('r', (2.0 / e.transform.k));
+	container.selectAll('.home').attr('r', (3.0 / e.transform.k));
+  });
+
+svg.call(zoom);
+
+
+let halfhourLine = container.append("circle").attr("class", "hour").attr("cx", width/2).attr("cy", height/2).attr('r', 60*60/maxTravelTime * 0.5 ).attr("hidden",true)//0.5 hour
+let onehourLine = container.append("circle").attr("class", "hour").attr("cx", width/2).attr("cy", height/2).attr('r', 60*60/maxTravelTime ).attr("hidden",true)//1 hour
+
 
 let grid = {};//辅助集合：索引-图中位置
 for(let i = 0; i < (width * height); i++){
-	grid[i] = {x:i % width, y: Math.floor(i / width)}
+	grid[i] = {x : i % width, y: Math.floor(i / width)}
 }
 
 const data2Points = function(data){
@@ -33,7 +45,6 @@ const data2Points = function(data){
 		let py = points[index].y;
 
 		for(let i of Object.keys(grid)){
-
 			let qx = grid[i].x;
 			let qy = grid[i].y;
 			let deltax = px - qx, deltay = py - qy;
@@ -56,51 +67,52 @@ const updateControlPoints = function(originStationId, travelTimes, stationPoints
 		let deltaX = stationPoints[stationId].x - originX;
 		let deltaY = stationPoints[stationId].y - originY;
 
-		let angle = Math.atan2(deltaY, deltaX) 
-		let origDist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));//距离哦
+		let angle = Math.atan2(deltaY, deltaX) //- 30 / 180 * Math.PI;
+		let origDist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));
 		
 		let dist = travelTimes ? (travelTimes[stationId]) / maxTravelTime : origDist * 5;
-		controlPoints.set(parseFloat(stationPoints[stationId].i), [Math.cos(angle) * dist + originX , Math.sin(angle) * dist + originY]);//向量
+		controlPoints.set(parseFloat(stationPoints[stationId].i), [Math.cos(angle) * dist + width/2, Math.sin(angle) * dist + height/2]);//向量
 
-		stationPoints[stationId].x = Math.cos(angle) * dist + originX ;
-		stationPoints[stationId].y = Math.sin(angle) * dist + originY;
-	}//圆心的问题
-
+		stationPoints[stationId].x = Math.cos(angle) * dist + width/2  ;
+		stationPoints[stationId].y = Math.sin(angle) * dist + height/2 ;
+	}//圆心问题
 	return controlPoints;
 }
 
-let tooltip = d3.select('body').append('div').attr('class','tooltip')
+//画图tooltip
+let tooltip = d3.select('body').append('div').attr('class','tooltip').attr("hidden",true);
 
 let shouldHideTooltip = true;
 const addClickHandlers = (selection) => {
 	selection.on('click',(d,i)=>{
 		setHomeStationId(i)
-		console.log(d,i)
+		halfhourLine.attr("hidden",null)
 	}).on('mouseover', (e,d) => {
-		tooltip.style("top", (e.pageY + 10) + "px").style("left", (e.pageX + 10) + "px").attr('display','block');
-		document.querySelector('.tooltip').display = 'block';
-		document.querySelector('.tooltip').innerHTML = "<h1>" + stations[d].name + "</h1>";
-}).on('mouseleave',()=>{
-	document.querySelector('.tooltip').display = 'none'
+		tooltip.style("top", (e.pageY + 10) + "px").style("left", (e.pageX + 10) + "px").attr("hidden",null);
+		let subwayInfo = "<strong>" + stations[d].name + "</strong><br/>";
+		if (travelTimes) {
+			let minutesAway = (travelTimes[d] / 60 | 0);
+			subwayInfo += minutesAway + ' minutes away';
+		}	
+		document.querySelector('.tooltip').innerHTML = subwayInfo;
+}).on('mouseout',()=>{
+	tooltip.attr("hidden",true);
 })
 }
 
 
    //画图
    const drawSubway = function(data1,data2){
-	let xMap =  (d) => data1[d].x;
-	let yMap =  (d) => data1[d].y;
-
 	//背景部分
 
 	let lineFunc2 = d3.line().x((d) => data2[d].x).y((d) => data2[d].y);
 	let lineSelection2 = container.selectAll('.curve').data(Object.values(curves));
-	lineSelection2.enter().append('path').attr('class', 'curve').attr('fill', (l) => l.color).attr('stroke-width', 0.5).merge(lineSelection2).attr('d', (d) => { return lineFunc2(d.points) } )
+	lineSelection2.enter().append('path').attr('class', 'curve').attr('fill', (l) => l.color).merge(lineSelection2).attr('d', (d) => { return lineFunc2(d.points) } )
 
 	//地铁部分 地铁线路
 	let lineFunc = d3.line().x((d) => data1[d].x).y((d) => data1[d].y).curve(d3.curveNatural);
 	let lineSelection = container.selectAll('.line').data(Object.values(lines));
-	lineSelection.enter().append('path').attr('class', 'line').attr('stroke', (l) => l.color).attr('stroke-width', 0.5).merge(lineSelection).attr('d', (d) => { return lineFunc(d.stations) } ).attr('fill', 'none');
+	lineSelection.enter().append('path').attr('class', 'line').attr('stroke', (l) => l.color).attr('stroke-width', 1).merge(lineSelection).attr('d', (d) => { return lineFunc(d.stations) } ).attr('fill', 'none');
 	//
 	//地铁部分 地铁站点
 	let stopSelection = container.selectAll('.stop').data(Object.keys(data1));
@@ -108,81 +120,32 @@ const addClickHandlers = (selection) => {
 		merged.transition().attr('cx', d => data1[d].x).attr('cy', d => data1[d].y);
 		addClickHandlers(merged)
 
+	let homeSelection = container.selectAll('.home').data([1]);
+	merged = homeSelection.enter().append('circle').attr('class', 'home').attr('r', '3').attr('fill', 'white').attr('stroke', 'black').attr('stroke-width', 2).merge(homeSelection);
+	merged.transition().attr('cx', width/2).attr('cy', height/2);
+	addClickHandlers(merged);
+
 }
 
-// const drawManhattan = function(data){
-// 	let lineFunc = d3.line().x((d) => data[d].x).y((d) => data[d].y);
-// 	let lineSelection = container.selectAll('.curve').data(Object.values(curves));
-// 	lineSelection.enter().append('path').attr('class', 'curve').attr('fill', (l) => l.color).attr('stroke-width', 0.5).attr('d', (d) => { return lineFunc(d.points) } )
-// }
-
 let updateMap = (homeStationId, schedule) => {
-	console.log(homeStationId, schedule)
 	if (homeStationId) {
 		document.getElementById('initial').style.display = 'none';
 		document.getElementById('explanation').style.display = 'block';
-		console.log(homeStationId)
 	}
 	let stationPoints, otherPoints;
-	if (homeStationId && schedule) {
-		console.log(homeStationId, schedule)
-		let processSchedule = (schd) => {
-			let times = _computeTravelTimes(homeStationId, Object.keys(subway.stations), gtfs_transfers, schd.events, schd.start_time);
-			window.travelTimes = times;
+	if (homeStationId && schedule) {	
+		let times = _computeTravelTimes(homeStationId, Object.keys(subway.stations), gtfs_transfers, schedule.events, schedule.start_time);
+		window.travelTimes = times;
 
-			stationPoints = data2Points(stations);
-			otherPoints = data2Points(points);
-			mls2D((updateControlPoints(homeStationId, times, stationPoints)),otherPoints,stationPoints)
-			drawSubway(stationPoints,otherPoints);
+		stationPoints = data2Points(stations);
+		otherPoints = data2Points(points);
+		mls2D((updateControlPoints(homeStationId, times, stationPoints)),otherPoints);
 
-		}
-		processSchedule(schedule)
-	
-		// let scheduleCache = {};
-		// if (scheduleCache[schedule]) {
-		// 	processSchedule(scheduleCache[schedule])
-		// } else {
-		// 	d3.json('/Projects/timespace map/schedules/' + schedule + '.json', (schedule) => {
-		// 		console.log("b");
-		// 		console.log(schedule);
-		// 		scheduleCache[schedule] = schedule;
-		// 		processSchedule(schedule);
-		// 	})
-		// }
-		// computeTravelTimes(homeStationId, schedule, (times) => {
-		// 	window.travelTimes = times;
-		// 	// setStationPositions(computeStationPositions(homeStationId, times));
-		// 	// let stationPoints = data2Points(stations);
-		// 	// let otherPoints = data2Points(points);
-		// 	console.log('hi')
-		// 	drawSubway(stationPoints,mls2D(updateControlPoints(homeStationId, times, data2Points(stations)), data2Points(points)));
-		// 	// drawManhattan(otherPoints);
-        // 	// drawSubway(stationPoints);
-		// })
-	} 
-	// let computeTravelTimes = (startStationId, scheduleName, callback) => {
-	// 	getSchedule(scheduleName, (schedule) => {
-	// 		callback(_computeTravelTimes(startStationId, Object.keys(subway.stations), gtfs_transfers, schedule.events, schedule.start_time));
-	// 	});
-	// };
-
-	// let getSchedule = (name, callback) => {
-	// 	if (scheduleCache[name]) {
-	// 		callback(scheduleCache[name]);
-	// 	} else {
-	// 		d3.json('/Projects/timespace map/schedules/' + name + '.json', (schedule) => {
-	// 			scheduleCache[name] = schedule;
-	// 			callback(schedule);
-	// 		})
-	// 	}
-	// }
-	else {
-		// setStationPositions(computeStationPositions(null, null));
+		drawSubway(stationPoints,otherPoints);
+	}else {
 		stationPoints = data2Points(stations);
 		otherPoints = data2Points(points);
 
-		// mls2D(updateControlPoints(defaultStop, window.travelTimes, stationPoints),otherPoints);
-		// drawManhattan(otherPoints);
         drawSubway(stationPoints,otherPoints);
 	}
 }
@@ -202,12 +165,12 @@ let setHomeStationId = (homeStationId) => {
 
 updateMap(null, null);
 // preload 8am:
-// getSchedule(window.schedule, (data) => {});
+getSchedule(window.schedule, (data) => {});
 
 
 $(() => {
 	$('#timePicker li').click((e) => {
-		let schedule = e.target.getAttribute('data-schedule');
+		let schedule = eval(e.target.getAttribute('data-schedule'));
 		$('#timePicker li').removeClass('selected');
 		$(e.target).addClass('selected');
 		setSchedule(schedule);
