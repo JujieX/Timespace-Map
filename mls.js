@@ -6,13 +6,12 @@ const mls2D = function(controlPoints,outputPoints,stationPoints)
 	let weights = new Map();
 	let weightsSum;
 	let outputGraph = new Object();
-
 	for(let i = 0; i < height; ++ i) {
 		for(let j = 0; j < width; ++ j) {
 			let pointIndex = width * i + j;
 			if(!controlPoints.has(pointIndex)) {
 				//不属于控制点
-
+				
 				//求加权重心p*, q*，权重值保存起来后面还有用
 				let pCentroidX = 0;
 				let pCentroidY = 0;
@@ -69,22 +68,10 @@ const mls2D = function(controlPoints,outputPoints,stationPoints)
 				m10 /= miu;
 				m11 /= miu;
 
-
-				outputGraph[pointIndex] = {x:(j - pCentroidX) * m00 + (i - pCentroidY) * m10 + qCentroidX, y:(j - pCentroidX) * m01 + (i - pCentroidY) * m11 + qCentroidY }
-				// for(let index = 0; index < Object.keys(outputPoints).length; index++){
-				// 	console.log('hi')
-				// 	if(outputPoints[index].i === pointIndex){
-				// 		outputPoints[index].x = (j - pCentroidX) * m00 + (i - pCentroidY) * m10 + qCentroidX;
-				// 		outputPoints[index].y = (j - pCentroidX) * m01 + (i - pCentroidY) * m11 + qCentroidY;
-				// 	}
-				// }
-
-				
+				outputGraph[pointIndex] = {x:(j - pCentroidX) * m00 + (i - pCentroidY) * m10 + qCentroidX, y:(j - pCentroidX) * m01 + (i - pCentroidY) * m11 + qCentroidY }			
 			}
-			if(controlPoints.has(pointIndex)) {
-				console.log('hi')
+			else if(controlPoints.has(pointIndex)) {
 				outputGraph[pointIndex] = {x: controlPoints.get(pointIndex)[0], y: controlPoints.get(pointIndex)[1]}
-				console.log(controlPoints.get(pointIndex)[0])
 			}
 		}
 	}

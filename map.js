@@ -1,5 +1,5 @@
 
-let maxTravelTime = 20 ;
+let maxTravelTime = 50 ;
 
 let { lines, stations} = subway;
 let { points, curves } = manhattan;
@@ -60,7 +60,7 @@ const updateControlPoints = function(originStationId, travelTimes, stationPoints
 		let origDist = Math.sqrt(Math.pow(deltaX, 2) + Math.pow(deltaY, 2));//距离哦
 		
 		let dist = travelTimes ? (travelTimes[stationId]) / maxTravelTime : origDist * 5;
-		controlPoints.set(stationPoints[stationId].i, [Math.cos(angle) * dist + originX , Math.sin(angle) * dist + originY]);//向量
+		controlPoints.set(parseFloat(stationPoints[stationId].i), [Math.cos(angle) * dist + originX , Math.sin(angle) * dist + originY]);//向量
 
 		stationPoints[stationId].x = Math.cos(angle) * dist + originX ;
 		stationPoints[stationId].y = Math.sin(angle) * dist + originY;
@@ -90,18 +90,20 @@ const addClickHandlers = (selection) => {
    const drawSubway = function(data1,data2){
 	let xMap =  (d) => data1[d].x;
 	let yMap =  (d) => data1[d].y;
+
 	//背景部分
+
 	let lineFunc2 = d3.line().x((d) => data2[d].x).y((d) => data2[d].y);
 	let lineSelection2 = container.selectAll('.curve').data(Object.values(curves));
-	lineSelection2.enter().append('path').attr('class', 'curve').attr('fill', (l) => l.color).attr('stroke-width', 0.5).attr('d', (d) => { return lineFunc2(d.points) } )
+	lineSelection2.enter().append('path').attr('class', 'curve').attr('fill', (l) => l.color).attr('stroke-width', 0.5).merge(lineSelection2).attr('d', (d) => { return lineFunc2(d.points) } )
 
 	//地铁部分 地铁线路
 	let lineFunc = d3.line().x((d) => data1[d].x).y((d) => data1[d].y).curve(d3.curveNatural);
 	let lineSelection = container.selectAll('.line').data(Object.values(lines));
-	lineSelection.enter().append('path').attr('class', 'line').attr('stroke', (l) => l.color).attr('stroke-width', 0.5).attr('d', (d) => { return lineFunc(d.stations) } ).attr('fill', 'none');
+	lineSelection.enter().append('path').attr('class', 'line').attr('stroke', (l) => l.color).attr('stroke-width', 0.5).merge(lineSelection).attr('d', (d) => { return lineFunc(d.stations) } ).attr('fill', 'none');
 	//
 	//地铁部分 地铁站点
-	let stopSelection = container.selectAll('cricle').data(Object.keys(data1));
+	let stopSelection = container.selectAll('.stop').data(Object.keys(data1));
 	let merged = stopSelection.enter().append('circle').attr('class', 'stop').attr('r', '1').attr('fill', 'black').merge(stopSelection);
 		merged.transition().attr('cx', d => data1[d].x).attr('cy', d => data1[d].y);
 		addClickHandlers(merged)
@@ -124,16 +126,13 @@ let updateMap = (homeStationId, schedule) => {
 	let stationPoints, otherPoints;
 	if (homeStationId && schedule) {
 		console.log(homeStationId, schedule)
-
 		let processSchedule = (schd) => {
 			let times = _computeTravelTimes(homeStationId, Object.keys(subway.stations), gtfs_transfers, schd.events, schd.start_time);
-			console.log('hi')
 			window.travelTimes = times;
 
 			stationPoints = data2Points(stations);
 			otherPoints = data2Points(points);
-			console.log(stationPoints)
-			console.log(updateControlPoints(homeStationId, times, stationPoints));
+			mls2D((updateControlPoints(homeStationId, times, stationPoints)),otherPoints,stationPoints)
 			drawSubway(stationPoints,otherPoints);
 
 		}
