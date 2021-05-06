@@ -1,10 +1,11 @@
-function mls2D(controlPoints,outputPoints)
+const mls2D = function(controlPoints,outputPoints,stationPoints)
 {
 	let miu;
 
 	//与源控制点的距离求得的权重
 	let weights = new Map();
 	let weightsSum;
+	let outputGraph = new Object();
 
 	for(let i = 0; i < height; ++ i) {
 		for(let j = 0; j < width; ++ j) {
@@ -67,16 +68,31 @@ function mls2D(controlPoints,outputPoints)
 				m01 /= miu;
 				m10 /= miu;
 				m11 /= miu;
-	
-				for(let index = 0; index < Object.keys(outputPoints).length; index++){
-					if(outputPoints[index].i === pointIndex){
-						outputPoints[index].x = (j - pCentroidX) * m00 + (i - pCentroidY) * m10 + qCentroidX;
-						outputPoints[index].y = (j - pCentroidX) * m01 + (i - pCentroidY) * m11 + qCentroidY;
-					}
-				}
+
+
+				outputGraph[pointIndex] = {x:(j - pCentroidX) * m00 + (i - pCentroidY) * m10 + qCentroidX, y:(j - pCentroidX) * m01 + (i - pCentroidY) * m11 + qCentroidY }
+				// for(let index = 0; index < Object.keys(outputPoints).length; index++){
+				// 	console.log('hi')
+				// 	if(outputPoints[index].i === pointIndex){
+				// 		outputPoints[index].x = (j - pCentroidX) * m00 + (i - pCentroidY) * m10 + qCentroidX;
+				// 		outputPoints[index].y = (j - pCentroidX) * m01 + (i - pCentroidY) * m11 + qCentroidY;
+				// 	}
+				// }
 
 				
 			}
+			if(controlPoints.has(pointIndex)) {
+				console.log('hi')
+				outputGraph[pointIndex] = {x: controlPoints.get(pointIndex)[0], y: controlPoints.get(pointIndex)[1]}
+				console.log(controlPoints.get(pointIndex)[0])
+			}
 		}
 	}
+
+	for (let i = 0; i < Object.keys(outputPoints).length; i++){
+		let pt = outputPoints[i].i; 
+		outputPoints[i].x = outputGraph[pt].x + stationPoints[homeStationId].x;
+		outputPoints[i].y = outputGraph[pt].y + stationPoints[homeStationId].y;
+	}
+	console.log(outputGraph,outputPoints)
 }
