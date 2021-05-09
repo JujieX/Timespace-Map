@@ -6,35 +6,35 @@ let MAX_TIME = 1000 * 60;
 
 class StateMap {
 	constructor() {
-		this.earliestRidersAtStates = {};
+		this.earliestRidersAtStates = {};//维持的状态
 	}
 	addRider(rider) {
-		let existing = this.earliestRidersAtStates[rider.state];
+		let existing = this.earliestRidersAtStates[rider.state];//最后一个时间
 		if (!existing || rider.time < existing.time) {
-			this.earliestRidersAtStates[rider.state] = rider;
+			this.earliestRidersAtStates[rider.state] = rider;//加上这个rider
 			return true;
 		}
 		return false;
 	}
 	addRiderAndTransfersByAppendingStop(oldRider, stopId, time, allTransfers) {
-		let direct = oldRider.byAdding(atStopState(stopId), time);
+		let direct = oldRider.byAdding(atStopState(stopId), time);//【at_stop : id] ,time
 		if (this.addRider(direct)) {
 			// add all transfers:
-			for (let transfer of allTransfers[stopId] || []) {
-				this.addRiderAndTransfersByAppendingStop(direct, transfer['to'], time + transfer.time, allTransfers);
+			for (let transfer of allTransfers[stopId] || []) {//||是啥啊！
+				this.addRiderAndTransfersByAppendingStop(direct, transfer['to'], time + transfer.time, allTransfers);//不该写transfer.to吗？
 			}
 		}
 	}
 }
 
-class Rider {
+class Rider {//[]和时间 的一个rider合集 this.state是啥呢
 	constructor(states, time) {
 		this.states = states; // states are strings
 		this.time = time;
-		this.state = states.length ? states[states.length-1] : null;
+		this.state = states.length ? states[states.length-1] : null;//最后一个
 	}
 	byAdding(state, finalTime) {
-		return new Rider([...this.states, state], finalTime);
+		return new Rider([...this.states, state], finalTime);//产生了一个新rider
 	}
 }
 
@@ -67,6 +67,7 @@ let _computeTravelTimes = (startStationId, endStationIds, transfers, events, sta
 	console.log(travelTimes)
 	return travelTimes;
 }
+
 
 let scheduleCache = {};
 let getSchedule = (name, callback) => {
