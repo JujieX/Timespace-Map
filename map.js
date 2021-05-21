@@ -113,13 +113,14 @@ const addClickHandlers = (selection) => {
 	let lineFunc = d3.line().x((d) => data1[d].x).y((d) => data1[d].y).curve(d3.curveNatural);
 	let lineSelection = container.selectAll('.line').data(Object.values(lines));
 	lineSelection.enter().append('path').attr('class', 'line').attr('stroke', (l) => l.color).attr('stroke-width', 1).merge(lineSelection).attr('d', (d) => { return lineFunc(d.stations) } ).attr('fill', 'none');
-	//
+	
 	//地铁部分 地铁站点
 	let stopSelection = container.selectAll('.stop').data(Object.keys(data1));
 	let merged = stopSelection.enter().append('circle').attr('class', 'stop').attr('r', '1').attr('fill', 'black').merge(stopSelection);
 		merged.transition().attr('cx', d => data1[d].x).attr('cy', d => data1[d].y);
 		addClickHandlers(merged)
-
+	
+	//圆心
 	let homeSelection = container.selectAll('.home').data([1]);
 	merged = homeSelection.enter().append('circle').attr('class', 'home').attr('r', '3').attr('fill', 'white').attr('stroke', 'black').attr('stroke-width', 2).merge(homeSelection);
 	merged.transition().attr('cx', width/2).attr('cy', height/2);
@@ -140,12 +141,12 @@ let updateMap = (homeStationId, schedule) => {
 		stationPoints = data2Points(stations);
 		otherPoints = data2Points(points);
 		mls2D((updateControlPoints(homeStationId, times, stationPoints)),otherPoints);
-
+		console.log(stationPoints)
 		drawSubway(stationPoints,otherPoints);
 	}else {
 		stationPoints = data2Points(stations);
 		otherPoints = data2Points(points);
-
+		console.log(stationPoints)
         drawSubway(stationPoints,otherPoints);
 	}
 }
@@ -159,14 +160,10 @@ let setSchedule = (schedule) => {
 }
 let setHomeStationId = (homeStationId) => {
 	window.homeStationId = homeStationId;
-	console.log(window.homeStationId, window.schedule)
 	updateMap(window.homeStationId, window.schedule);
 }
 
 updateMap(null, null);
-// preload 8am:
-getSchedule(window.schedule, (data) => {});
-
 
 $(() => {
 	$('#timePicker li').click((e) => {

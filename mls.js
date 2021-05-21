@@ -81,5 +81,4 @@ const mls2D = function(controlPoints,outputPoints)
 		outputPoints[i].x = outputGraph[pt].x ;
 		outputPoints[i].y = outputGraph[pt].y ;
 	}
-	console.log(outputGraph,outputPoints)
 }

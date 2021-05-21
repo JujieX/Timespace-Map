@@ -9,7 +9,7 @@ class StateMap {
 		this.earliestRidersAtStates = {};//维持的状态
 	}
 	addRider(rider) {
-		let existing = this.earliestRidersAtStates[rider.state];//最后一个时间
+		let existing = this.earliestRidersAtStates[rider.state];
 		if (!existing || rider.time < existing.time) {
 			this.earliestRidersAtStates[rider.state] = rider;//加上这个rider
 			return true;
@@ -17,11 +17,11 @@ class StateMap {
 		return false;
 	}
 	addRiderAndTransfersByAppendingStop(oldRider, stopId, time, allTransfers) {
-		let direct = oldRider.byAdding(atStopState(stopId), time);//【at_stop : id] ,time
+		let direct = oldRider.byAdding(atStopState(stopId), time);
 		if (this.addRider(direct)) {
 			// add all transfers:
-			for (let transfer of allTransfers[stopId] || []) {//||是啥啊！
-				this.addRiderAndTransfersByAppendingStop(direct, transfer['to'], time + transfer.time, allTransfers);//不该写transfer.to吗？
+			for (let transfer of allTransfers[stopId] || []) {
+				this.addRiderAndTransfersByAppendingStop(direct, transfer['to'], time + transfer.time, allTransfers);
 			}
 		}
 	}
@@ -43,7 +43,6 @@ let _computeTravelTimes = (startStationId, endStationIds, transfers, events, sta
 	
 	let emptyPath = new Rider([], startTime);
 	stateMap.addRiderAndTransfersByAppendingStop(emptyPath, startStationId, startTime, transfers);
-	// console.log(stateMap);
 	
 	for (let {time, trip_id, stop_id, route_name} of events) {
 		// model exiting the train:
@@ -64,27 +63,5 @@ let _computeTravelTimes = (startStationId, endStationIds, transfers, events, sta
 		let rider = stateMap.earliestRidersAtStates[atStopState(stationId)];
 		travelTimes[stationId] = rider ? rider.time - startTime : MAX_TIME;
 	}
-	console.log(travelTimes)
 	return travelTimes;
 }
-
-
-let scheduleCache = {};
-let getSchedule = (name, callback) => {
-	if (scheduleCache[name]) {
-		callback(scheduleCache[name]);
-	} else {
-		d3.json('/Projects/timespace map/schedules/' + name + '.json', (schedule) => {
-			scheduleCache[name] = schedule;
-			callback(schedule);
-		})
-	}
-}
-let computeTravelTimes = (startStationId, scheduleName, callback) => {
-	getSchedule(scheduleName, (schedule) => {
-		callback(_computeTravelTimes(startStationId, Object.keys(subway.stations), gtfs_transfers, schedule.events, schedule.start_time));
-	});
-};
-
-// let HOURS = 60 * 60;
-// console.log(computeTravelTimes('127', Object.keys(subway.stations), 8*HOURS, gtfs_json, 'weekdays'));
